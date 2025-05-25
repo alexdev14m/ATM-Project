@@ -1,6 +1,8 @@
 #include <iostream>
 #include <filesystem>
 #include <fstream>
+#include <ostream>
+#include <sstream>
 #include <string>
 
 class FileManipulation {
@@ -50,36 +52,50 @@ class FileManipulation {
                 logFile.close();
 
                 return true;
-            } 
+            }
             else return false;
         }
 
-        static bool rewriteLine(const std::string text, int lineNum, const std::string filename){
-            std::string filenameNew;
-
-            if(!filename.ends_with(".log")) filenameNew = filename + ".log";
-            else filenameNew = filename;
+        static bool rewriteWordInLine(int lineNum, int wordIndexToReplace, const std::string& newWord, const std::string& filename) {
+            std::string filenameNew = filename.ends_with(".log") ? filename : filename + ".log";
 
             std::ifstream logFile(filenameNew);
-            if(!logFile){
+            if (!logFile) {
                 std::cerr << "Cannot open the file!" << std::endl;
                 return false;
             }
 
             std::string tempFilename = filenameNew + ".tmp";
             std::ofstream tempFile(tempFilename);
-            if(!tempFile){
+            if (!tempFile) {
                 std::cerr << "Cannot create/open the temp file!" << std::endl;
                 return false;
             }
-            
+
             std::string line;
             int currentLine = 1;
             bool replaced = false;
 
-            while(std::getline(logFile, line)) {
-                if (currentLine == lineNum){
-                    tempFile << text << "\n";
+            while (std::getline(logFile, line)) {
+                if (currentLine == lineNum) {
+                    std::istringstream stream(line);
+                    std::ostringstream newLine;
+                    std::string word;
+                    int wordIndex = 1;
+
+                    while (stream >> word) {
+                        if (wordIndex == wordIndexToReplace)
+                            newLine << newWord << " ";
+                        else
+                            newLine << word << " ";
+                        wordIndex++;
+                    }
+
+                    std::string finalLine = newLine.str();
+                    if (!finalLine.empty() && finalLine.back() == ' ')
+                        finalLine.pop_back();
+
+                    tempFile << finalLine << "\n";
                     replaced = true;
                 } else {
                     tempFile << line << "\n";
@@ -90,15 +106,16 @@ class FileManipulation {
             logFile.close();
             tempFile.close();
 
-            if(!replaced) {
-                std::cerr << "Line number " << lineNum << " not found in the file." << std::endl;
+            if (!replaced) {
+                std::cerr << "Line number " << lineNum << " not found." << std::endl;
                 std::filesystem::remove(tempFilename);
                 return false;
             }
-            
+
             std::filesystem::rename(tempFilename, filenameNew);
             return true;
         }
+
 
         static bool lineHasAnyText(const std::string& line) {
             return std::find_if(line.begin(), line.end(), [](unsigned char ch) {
@@ -110,7 +127,7 @@ class FileManipulation {
             std::string filenameNew;
             if(!filename.ends_with(".log")) filenameNew = filename + ".log";
             else filenameNew = filename;
-            
+
             std::ifstream file(filenameNew);
             if (!file) {
                 std::cerr << "Cannot open file.\n";
@@ -135,13 +152,13 @@ class FileManipulation {
             std::string filenameNew;
             if(!filename.ends_with(".log")) filenameNew = filename + ".log";
             else filenameNew = filename;
-            
+
             std::ifstream file(filenameNew);
             if(!file) {
                 std::cerr << "Error: Cannot open the file" << std::endl << std::endl;
                 return "";
             }
-            
+
             int currentLine = 1;
 
             std::string line;
@@ -163,7 +180,7 @@ class FileManipulation {
                 }
                 currentLine++;
             }
-            
+
             return "";
         }
 
@@ -214,4 +231,42 @@ class FileManipulation {
 
             return 1;
         }
-};  
+
+        static bool matchTextWithSpecific(const std::string& filename, const std::string& fullnameInput, const std::string& pinInput, std::string& balanceOutput) {
+            std::string filenameNew = filename;
+            if (!filename.ends_with(".log"))
+                filenameNew += ".log";
+
+            std::ifstream file(filenameNew);
+            if (!file) {
+                std::cerr << "Error: Failed to open the file!" << std::endl;
+                return false;
+            }
+
+            std::string line;
+            int lineNumber = 0;
+
+            // Skip first 2 lines (header maybe)
+            while (lineNumber < 2 && std::getline(file, line)) {
+                ++lineNumber;
+            }
+
+            // Now read data lines
+            while (std::getline(file, line)) {
+                std::istringstream lineStream(line);
+                std::string firstName, lastName, pin, balance;
+
+                if (lineStream >> firstName >> lastName >> pin >> balance) {
+                    std::string fullname = firstName + " " + lastName;
+                    if (fullname == fullnameInput && pin == pinInput) {
+                        balanceOutput = balance;
+                        file.close();
+                        return true;
+                    }
+                }
+            }
+
+            file.close();
+            return false;
+        }
+};

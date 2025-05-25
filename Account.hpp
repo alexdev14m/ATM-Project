@@ -1,5 +1,3 @@
-#include <iostream>
-
 class Account {
     public:
         std::string getName() {

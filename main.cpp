@@ -1,7 +1,6 @@
 #include <iostream>
 #include <string>
-#include "FileManipulation.hpp"
-#include "Account.hpp"
+#include "Transactions.hpp"
 
 int main(){
     std::cout << "Hello world!" << std::endl;
@@ -29,7 +28,7 @@ int main(){
             case 1: {
                 numofacc++;
                 if (FileManipulation::checkLineHasText(filename, 2)){
-                    FileManipulation::rewriteLine(std::to_string(numofacc), 2, filename);
+                    FileManipulation::rewriteWordInLine(2, 1, std::to_string(numofacc), filename);
                 } else {
                     FileManipulation::appendText(std::to_string(numofacc), filename);
                 }
@@ -44,7 +43,7 @@ int main(){
 
                 std::cout << "Enter your desired pin (1111-9999)" << std::endl << "> ";
                 std::cin >> pin;
-                
+
                 if (pin < 1111 || pin > 9999) {
                     std::cerr << "The pin is out range!." << std::endl << std::endl;
                     break;
@@ -61,10 +60,17 @@ int main(){
                 break;
             }
             case 2: {
-                std::cout << FileManipulation::findNameByLine(filename, 3) << std::endl;
-                std::cout << FileManipulation::findIntByLine(filename, 3, 1) << std::endl;
-                std::cout << FileManipulation::findIntByLine(filename, 3, 2) << std::endl;
+                Transactions::deposit(filename);
+                break;
+            }
 
+            case 3: {
+                Transactions::withdraw(filename);
+                break;
+            }
+
+            case 4: {
+                std::cout << Transactions::checkBalance(filename) << std::endl;
                 break;
             }
 

@@ -1,0 +1,15 @@
+[
+  {
+    "arguments": [
+      "/usr/bin/g++",
+      "-std=c++23",
+      "-c",
+      "main.cpp",
+      "-o",
+      "main.o"
+    ],
+    "directory": "/home/alex/workspace/ATM-Project",
+    "file": "/home/alex/workspace/ATM-Project/main.cpp",
+    "output": "/home/alex/workspace/ATM-Project/main.o"
+  }
+]
