@@ -34,3 +34,5 @@
 ATM
 myprog
 *.log
+.cache
+*.json
