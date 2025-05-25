@@ -2,7 +2,6 @@
 #include <string>
 #include <ostream>
 #include <string>
-#include <limits>
 #include "FileManipulation.hpp"
 #include "Account.hpp"
 
@@ -35,9 +34,7 @@ class Transactions {
             int newBalance = currentBalance + amount;
             acc.setBalance(newBalance);
 
-            int lineNumber = 3;
-
-            FileManipulation::rewriteWordInLine(lineNumber, 4, std::to_string(acc.getBalance()), filename);
+            FileManipulation::rewriteWordInLine(FileManipulation::findLineByKeyword(filename, name, pin), 4, std::to_string(acc.getBalance()), filename);
 
             return true;
         }
@@ -74,7 +71,7 @@ class Transactions {
             int newBalance = currentBalance - amount;
             acc.setBalance(newBalance);
 
-            FileManipulation::rewriteWordInLine(3, 4, std::to_string(acc.getBalance()), filename);
+            FileManipulation::rewriteWordInLine(FileManipulation::findLineByKeyword(filename, name, pin), 4, std::to_string(acc.getBalance()), filename);
 
             return true;
         }
@@ -82,7 +79,15 @@ class Transactions {
         static int checkBalance(const std::string& filename) {
             Account acc;
 
-            int currentBalance = FileManipulation::findIntByLine(filename, 3, 2);
+            std::string fullName;
+            std::string pin;
+
+            std::cout << "Enter your name: " << std::endl;
+            getline(std::cin, fullName);
+            std::cout << "Enter your pin: " << std::endl;
+            getline(std::cin, pin);
+
+            int currentBalance = FileManipulation::findIntByLine(filename, FileManipulation::findLineByKeyword(filename, fullName, pin), 2);
             acc.setBalance(currentBalance);
 
             return acc.getBalance();

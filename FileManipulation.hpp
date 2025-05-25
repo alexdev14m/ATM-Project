@@ -1,3 +1,4 @@
+#include "picosha2.hpp"
 #include <iostream>
 #include <filesystem>
 #include <fstream>
@@ -26,7 +27,7 @@ class FileManipulation {
             std::ofstream logFile(filenameNew, std::ios::app);
 
             if (logFile){
-                logFile << "FULL NAME  ||  PIN  ||  BALANCE\n";
+                logFile << "FULL NAME    ||PIN||BALANCE\n";
                 logFile.close();
             } else {
                 std::cerr << "File doesn't exist or it cannot be opened." << std::endl;
@@ -251,6 +252,8 @@ class FileManipulation {
                 ++lineNumber;
             }
 
+            std::string hashedpin = picosha2::hash256_hex_string(pinInput);
+
             // Now read data lines
             while (std::getline(file, line)) {
                 std::istringstream lineStream(line);
@@ -258,7 +261,7 @@ class FileManipulation {
 
                 if (lineStream >> firstName >> lastName >> pin >> balance) {
                     std::string fullname = firstName + " " + lastName;
-                    if (fullname == fullnameInput && pin == pinInput) {
+                    if (fullname == fullnameInput && pin == hashedpin) {
                         balanceOutput = balance;
                         file.close();
                         return true;
@@ -268,5 +271,44 @@ class FileManipulation {
 
             file.close();
             return false;
+        }
+
+        static int findLineByKeyword(const std::string& filename, const std::string& keyword1, const std::string& keyword2) {
+            std::string filenameNew;
+            if (!filename.ends_with(".log")) filenameNew = filename + ".log";
+            else filenameNew = filename;
+
+            std::ifstream file(filenameNew);
+            if(!file){
+                std::cout << "Error: Failed to open the file!" << std::endl;
+                return -1;
+            }
+
+            std::string line;
+            int lineNumber = 1;
+
+            while (lineNumber < 2 && std::getline(file, line)) {
+                ++lineNumber;
+            }
+
+            std::string hashedkeyword = picosha2::hash256_hex_string(keyword2);
+
+            while (getline(file, line)) {
+                std::istringstream iss(line);
+                std::string firstName, lastname, pin, balance;
+
+                if (iss >> firstName >> lastname >> pin >> balance) {
+                    std::string fullname = firstName + " " + lastname;
+
+                    if (keyword1 == fullname && hashedkeyword == pin) {
+                        file.close();
+                        return lineNumber;
+                    }
+                }
+                ++lineNumber;
+            }
+
+            file.close();
+            return -1;
         }
 };

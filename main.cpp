@@ -1,6 +1,7 @@
 #include <iostream>
 #include <string>
 #include "Transactions.hpp"
+#include "picosha2.hpp"
 
 int main(){
     std::cout << "Hello world!" << std::endl;
@@ -26,7 +27,6 @@ int main(){
 
         switch(choice){
             case 1: {
-                numofacc++;
                 if (FileManipulation::checkLineHasText(filename, 2)){
                     FileManipulation::rewriteWordInLine(2, 1, std::to_string(numofacc), filename);
                 } else {
@@ -44,6 +44,8 @@ int main(){
                 std::cout << "Enter your desired pin (1111-9999)" << std::endl << "> ";
                 std::cin >> pin;
 
+                std::string hashedpin = picosha2::hash256_hex_string(std::to_string(pin));
+
                 if (pin < 1111 || pin > 9999) {
                     std::cerr << "The pin is out range!." << std::endl << std::endl;
                     break;
@@ -51,11 +53,13 @@ int main(){
 
                 acc.setBalance(ramBalance);
 
-                std::string finalString = name + " " + std::to_string(pin) + " " + std::to_string(acc.getBalance());
+                std::string finalString = name + " " + hashedpin + " " + std::to_string(acc.getBalance());
 
                 FileManipulation::appendText(finalString, filename);
 
                 std::cout << std::endl;
+
+                numofacc++;
 
                 break;
             }

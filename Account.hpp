@@ -1,3 +1,5 @@
+#include <string>
+
 class Account {
     public:
         std::string getName() {
